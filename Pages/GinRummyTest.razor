@@ -21,7 +21,7 @@
 <br />
 <p>@ginRummyGameService.HandToString(ginRummyGameService.handPlayerOne)</p>
 <br />
-
+@*
 @if(@ginRummyGameService.isPlayerOneTurn)
 {
     <p>Player one turn</p>
@@ -31,24 +31,24 @@
 else
 {
     StateHasChanged();
-    ginRummyGameService.PlayerChooseDiscard(false, 9);
+    ginRummyGameService.PlayerChoseDiscard(false, 9);
     StateHasChanged();
 }
 
 <p>@ginRummyGameService.isPlayerOneTurn</p>
 
-<p>@playerOneNumber</p>
+<p>@playerOneNumber</p>*@
 
 @*<button class="btn btn-primary" @onclick="RemoveCardFromDeck">Remove Card From Deck</button>*@
 
-@code {
+@*@code {
     private int playerOneNumber;
 
     private void SubmitPlayerOneTurn()
     {
         //if (playerOneNumber > 9 || playerOneNumber < 0) return;
 
-        ginRummyGameService.PlayerChooseDiscard(true, playerOneNumber);
+        ginRummyGameService.PlayerChoseDiscard(true, playerOneNumber);
         StateHasChanged();
     }
 
@@ -56,4 +56,4 @@ else
     {
         StateHasChanged();
     }
-}
+}*@

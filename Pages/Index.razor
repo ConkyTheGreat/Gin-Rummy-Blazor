@@ -25,15 +25,14 @@
 <p>@ginRummyGameService.HandToString(ginRummyGameService.handPlayerTwo)</p>
 <br />
 <p>Discard Pile: @ginRummyGameService.discardPile.Last().ToString()</p>
+<img width="60" height="60" src="@($"SVG-cards/{ginRummyGameService.discardPile.Last().FullNameString()}.svg")" @onclick="@(() => PlayerOneClickedDiscardPile())">
 <br />
 <p>@ginRummyGameService.HandToString(ginRummyGameService.handPlayerOne)</p>
 <br />
 
-<p>Player one turn</p>
-<input type="number" @bind-value="@playerOneNumber" min="0" max="9">
-<button @onclick="@(async () => await SubmitPlayerOneTurn())" disabled="@(!ginRummyGameService.isPlayerOneTurn)">Submit</button>
-
 <br />
+
+<button class="btn btn-danger" @onclick="@(() => PlayerOneClickedPassButton())" disabled="@(!ginRummyGameService.isPlayerOneTurn)">Pass Turn</button>
 
 <p>@ginRummyGameService.isPlayerOneTurn</p>
 
@@ -42,25 +41,51 @@
 @code {
     private int playerOneNumber;
 
+        private void PlayerOneClickedDeck()
+    {
+        if (!ginRummyGameService.isPlayerOneTurn) return;
+
+        ginRummyGameService.PlayerPickedUpCardFromDeck();
+    }
+
+    private void PlayerOneClickedDiscardPile()
+    {
+        if (!ginRummyGameService.isPlayerOneTurn) return;
+
+        ginRummyGameService.PlayerPickedUpCardFromDiscardPile();
+    }
+
     private void PlayerOneClickedCardImage(Card card)
     {
+        if (!ginRummyGameService.isPlayerOneTurn) return;
+        if (!ginRummyGameService.isPickedUpCardSet) return;
+
         playerOneNumber = ginRummyGameService.handPlayerOne.IndexOf(card);
+
+        ginRummyGameService.PlayerChoseDiscard(playerOneNumber); // TODO: refactor with above line
     }
 
-    private async Task SubmitPlayerOneTurn()
+    private void PlayerOneClickedPassButton()
     {
-        ginRummyGameService.PlayerChooseDiscard(true, playerOneNumber);
-        StateHasChanged();
+        if (!ginRummyGameService.isPlayerOneTurn) return;
 
-        await GetComputerTurn();
+        ginRummyGameService.PlayerChoseToPass();
     }
 
-    private async Task GetComputerTurn()
-    {
-        await Task.Delay(1000); // Delay so that user can better see what decision the computer player made.
-        ginRummyGameService.PlayerChooseDiscard(false, 9);
-        StateHasChanged();
-    }
+    //private async Task SubmitPlayerOneTurn()
+    //{
+    //    ginRummyGameService.PlayerChoseDiscard(true, playerOneNumber);
+    //    StateHasChanged();
+
+    //    await GetComputerTurn();
+    //}
+
+    //private async Task GetComputerTurn()
+    //{
+    //    await Task.Delay(1000); // Delay so that user can better see what decision the computer player made.
+    //    ginRummyGameService.PlayerChoseDiscard(false, 9);
+    //    StateHasChanged();
+    //}
 }
 
 
@@ -98,7 +123,9 @@ else
     //    StateHasChanged();
     //}
 
-
+    <p>Player one turn</p>
+<input type="number" @bind-value="@playerOneNumber" min="0" max="9">
+<button @onclick="@(async () => await SubmitPlayerOneTurn())" disabled="@(!ginRummyGameService.isPlayerOneTurn)">Submit</button>
 
 *@
 
