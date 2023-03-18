@@ -1,0 +1,70 @@
+﻿@page "/"
+@using BlazorGinRummy.GinRummyGame.Helpers;
+@using BlazorGinRummy.GinRummyGame.Models;
+@inject GinRummyGameService ginRummyGameService;
+
+<PageTitle>Index</PageTitle>
+
+<h4>@ginRummyGameService.GameStateMessage</h4>
+
+@*<ol>
+    @foreach (var card in ginRummyGameService.GetDeck())
+    {
+        <li>@card.ToString()</li>
+    }
+</ol>*@
+
+<p>@ginRummyGameService.HandToString(ginRummyGameService.handPlayerTwo)</p>
+<br />
+<p>Discard Pile: @ginRummyGameService.discardPile.Last().ToString()</p>
+<br />
+<p>@ginRummyGameService.HandToString(ginRummyGameService.handPlayerOne)</p>
+<br />
+
+@if(@ginRummyGameService.isPlayerOneTurn)
+{
+    <p>Player one turn</p>
+    <input type="number" @bind-value="@playerOneNumber" min="0" max="9">
+    <button @onclick="@SubmitPlayerOneTurn">Submit</button>
+
+}
+else
+{
+@*      This is extremely hacky but this is the only method I could get to work so that delays could be 
+      programmed in without blocking prior UI updates.*@
+
+    <img src="loading.jpg" @onload="@(async () => await GetComputerTurn())" hidden>
+}
+
+<br />
+
+<p>@ginRummyGameService.isPlayerOneTurn</p>
+
+<p>@playerOneNumber</p>
+
+@code {
+    private int playerOneNumber;
+
+    private void SubmitPlayerOneTurn()
+    {
+        ginRummyGameService.PlayerChooseDiscard(true, playerOneNumber);
+        StateHasChanged();
+    }
+
+    private async Task GetComputerTurn()
+    {
+        await Task.Delay(1000); // Delay so that user can better see what decision the computer player made.
+        ginRummyGameService.PlayerChooseDiscard(false, 9);
+        StateHasChanged();
+    }
+
+    //     <button @onclick="@(async () => await SubmitPlayerOneTurn())">Submit</button>
+}
+
+
+
+
+
+@*<ImagesTest />*@
+
+@*<GinRummyTest />*@
