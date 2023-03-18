@@ -14,6 +14,14 @@
     }
 </ol>*@
 
+<ol>
+    @foreach (var card in ginRummyGameService.handPlayerOne)
+    {
+        <li>@card.FullNameString()</li>
+        <img width="60" height="60" src="@($"SVG-cards/{card.FullNameString()}.svg")">
+    }
+</ol>
+
 <p>@ginRummyGameService.HandToString(ginRummyGameService.handPlayerTwo)</p>
 <br />
 <p>Discard Pile: @ginRummyGameService.discardPile.Last().ToString()</p>
@@ -21,20 +29,11 @@
 <p>@ginRummyGameService.HandToString(ginRummyGameService.handPlayerOne)</p>
 <br />
 
-@if(@ginRummyGameService.isPlayerOneTurn)
-{
-    <p>Player one turn</p>
-    <input type="number" @bind-value="@playerOneNumber" min="0" max="9">
-    <button @onclick="@SubmitPlayerOneTurn">Submit</button>
+<p>Player one turn</p>
+<input type="number" @bind-value="@playerOneNumber" min="0" max="9">
+<button @onclick="@(async () => await SubmitPlayerOneTurn())" disabled="@(!ginRummyGameService.isPlayerOneTurn)">Submit</button>
 
-}
-else
-{
-@*      This is extremely hacky but this is the only method I could get to work so that delays could be 
-      programmed in without blocking prior UI updates.*@
 
-    <img src="loading.jpg" @onload="@(async () => await GetComputerTurn())" hidden>
-}
 
 <br />
 
@@ -45,10 +44,12 @@ else
 @code {
     private int playerOneNumber;
 
-    private void SubmitPlayerOneTurn()
+    private async Task SubmitPlayerOneTurn()
     {
         ginRummyGameService.PlayerChooseDiscard(true, playerOneNumber);
         StateHasChanged();
+
+        await GetComputerTurn();
     }
 
     private async Task GetComputerTurn()
@@ -57,14 +58,44 @@ else
         ginRummyGameService.PlayerChooseDiscard(false, 9);
         StateHasChanged();
     }
-
-    //     <button @onclick="@(async () => await SubmitPlayerOneTurn())">Submit</button>
 }
-
-
 
 
 
 @*<ImagesTest />*@
 
 @*<GinRummyTest />*@
+
+                @*
+@if(@ginRummyGameService.isPlayerOneTurn)
+{
+    <p>Player one turn</p>
+    <input type="number" @bind-value="@playerOneNumber" min="0" max="9">
+    <button @onclick="@SubmitPlayerOneTurn">Submit</button>
+
+}
+else
+{
+    /* 
+    
+    This is extremely hacky but this is the only method I could get to work so that delays could be 
+    programmed in without blocking prior UI updates.
+      
+    */
+
+    <img src="loading.jpg" @onload="@(async () => await GetComputerTurn())" hidden>
+}
+
+
+
+
+    //private void SubmitPlayerOneTurn()
+    //{
+    //    ginRummyGameService.PlayerChooseDiscard(true, playerOneNumber);
+    //    StateHasChanged();
+    //}
+
+
+
+*@
+

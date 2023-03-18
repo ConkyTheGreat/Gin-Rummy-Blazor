@@ -48,11 +48,6 @@ namespace BlazorGinRummy.GinRummyGame
             GameStateMessage = GameLogicMethods.CurrentPlayerString(isPlayerOneTurn) + " turn"; // TODO: remove
         }
 
-        public bool GetPlayerTurn()
-        {
-            return isPlayerOneTurn;
-        }
-
         private void DiscardFromHand(bool isPlayerOneTurn, int userInput)
         {
             if (isPlayerOneTurn)
@@ -72,6 +67,19 @@ namespace BlazorGinRummy.GinRummyGame
         public List<Card> GetDeck()
         {
             return deck;
+        }
+
+        // TODO: delete
+        public List<String> GetFullCardNames(List<Card> hand)
+        {
+            List<String> cardNames = new List<String>();
+
+            foreach(var card in hand)
+            {
+                cardNames.Add(card.FullNameString());
+            }
+
+            return cardNames;
         }
 
         private List<Card> CreateShuffledDeck()
