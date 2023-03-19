@@ -89,7 +89,6 @@ else
     {
         if (ginRummyGameService.didPlayerOnePickupCard) return;
         if (!ginRummyGameService.isPlayerOneTurn) return;
-        if (ginRummyGameService.isPlayerOneMakingFirstCardChoice) return;
         if (ginRummyGameService.isGameOver) return;
 
         ginRummyGameService.PlayerOnePickedUpCardFromDeck();
@@ -107,14 +106,12 @@ else
     private async Task PickedUpCardImgClicked()
     {
         if (!ginRummyGameService.isPlayerOneTurn) return;
-        if (!ginRummyGameService.isPickedUpCardSet) return;
         if (ginRummyGameService.isGameOver) return;
 
         ginRummyGameService.PlayerOneChoseDiscard_PickedUpCard();
         StateHasChanged();
 
         if (ginRummyGameService.canPlayerOneKnock) return;
-        if (ginRummyGameService.isPlayerOneMakingFirstCardChoice) return;
 
         await SimpleAgentTurn();
     }
@@ -122,14 +119,13 @@ else
     private async Task CardInHandImgClicked(Card card)
     {
         if (!ginRummyGameService.isPlayerOneTurn) return;
-        if (!ginRummyGameService.isPickedUpCardSet) return;
+        if (!ginRummyGameService.didPlayerOnePickupCard) return;
         if (ginRummyGameService.isGameOver) return;
 
         ginRummyGameService.PlayerOneChoseDiscard(ginRummyGameService.handPlayerOne.IndexOf(card)); 
         StateHasChanged();
 
         if (ginRummyGameService.canPlayerOneKnock) return;
-        if (ginRummyGameService.isPlayerOneMakingFirstCardChoice) return;
 
         await SimpleAgentTurn();
     }

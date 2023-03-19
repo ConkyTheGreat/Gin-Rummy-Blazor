@@ -28,10 +28,7 @@ namespace BlazorGinRummy.GinRummyGame
         public int playerOneRoundScore { get; private set; } = 0;
         public int playerTwoRoundScore { get; private set; } = 0;
         private int winnerNumber = 0;
-
-        public bool isFirstTurnChanceToPickupFromDiscardPile { get; private set; } = true;
         public bool isWaitingForPlayerOneInput { get; private set; } = false; 
-        public bool isPickedUpCardSet { get; private set; } = false;
         private bool didNonDealerPickupAtFirstChance = false;
         public bool isPlayerOneMakingFirstCardChoice { get; private set; } = false;
         private bool didPlayerOneStartAsDealer;
@@ -58,7 +55,7 @@ namespace BlazorGinRummy.GinRummyGame
 
         public void PlayerOneChoseKnock()
         {
-            // TODO: check for knocking immediately after first card played?
+            PlayerOneAfterDiscardTasks(true);
             GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " has chosen to knock and end the game.");
             SetGameOver();
             NonKnockerCombinesUnmatchedCardsWithKnockersMelds();
@@ -67,10 +64,10 @@ namespace BlazorGinRummy.GinRummyGame
 
         public void PlayerOneChoseKeepPlaying()
         {
+            GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " has chosen to continue playing.");
             isPlayerOneKeepPlaying = true;
-            PlayerOneAfterDiscardTasks();
+            PlayerOneAfterDiscardTasks(true);
             SimpleAgentPlaysHand();
-            // TODO: reset bool flags
         }
 
         private void NonKnockerCombinesUnmatchedCardsWithKnockersMelds()
@@ -152,7 +149,6 @@ namespace BlazorGinRummy.GinRummyGame
 
             GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " picked up " + pickedUpCard.ToString());
             GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " - Select a card from your hand to discard.");
-            isPickedUpCardSet = true;
             didPlayerOnePickupCard = true;
         }
 
@@ -172,11 +168,7 @@ namespace BlazorGinRummy.GinRummyGame
         {
             discardPile.Add(pickedUpCard);
 
-            //PlayerOneDiscardedTasks();
-
-            if (canPlayerOneKnock) return; // TODO: refactor, run discarded tasks in PassedButton method
-
-            PlayerOneAfterDiscardTasks();
+            PlayerOneAfterDiscardTasks(false);
         }
 
         public void PlayerOneChoseDiscard(int userInput)
@@ -184,27 +176,26 @@ namespace BlazorGinRummy.GinRummyGame
             discardPile.Add(handPlayerOne[userInput]);
             handPlayerOne[userInput] = pickedUpCard;
 
-            //PlayerOneDiscardedTasks();
-
-            if (canPlayerOneKnock) return;
-
-            PlayerOneAfterDiscardTasks();
+            PlayerOneAfterDiscardTasks(false);
         }
 
-        private void PlayerOneAfterDiscardTasks()
+        private void PlayerOneAfterDiscardTasks(bool didPlayerOneAlreadyPass)
         {
+            if(!didPlayerOneAlreadyPass)
+            {
+                SortHandsDetectMelds();
+                DetectIfGinHasOccurred();
+                DetermineIfKnockingEligible();
+                PromptPlayerToKnock();
+
+                pickedUpCard = null;
+                playerOnePickedUpCard = null;
+                didPlayerOnePickupCard = false;
+
+                if (!isPlayerOneKeepPlaying) return;
+            }
+
             GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " discarded " + discardPile.Last().ToString());
-
-            pickedUpCard = null;
-            playerOnePickedUpCard = null;
-            isPickedUpCardSet = false;
-
-            didPlayerOnePickupCard = false;
-
-            SortHandsDetectMelds();
-            DetectIfGinHasOccurred();
-            DetermineIfKnockingEligible();
-            PromptPlayerToKnock();
 
             PrepareNextTurn();
 
@@ -219,7 +210,6 @@ namespace BlazorGinRummy.GinRummyGame
                     PrepareNextTurn();
                     FirstTurnChanceToPickupFromDiscardPile_DealerTurn();
                 }
-                else isFirstTurnChanceToPickupFromDiscardPile = false;
             }
         }
 
@@ -248,7 +238,6 @@ namespace BlazorGinRummy.GinRummyGame
             {
                 GameStateMessage.Add("MISDEAL - atleast one player can knock before any cards have been exchanged.");
                 isGameOver = true;
-                isFirstTurnChanceToPickupFromDiscardPile = false;
                 winnerNumber = 0;
                 return;
             }
@@ -282,7 +271,6 @@ namespace BlazorGinRummy.GinRummyGame
                 PrepareNextTurn();
             }
 
-            isFirstTurnChanceToPickupFromDiscardPile = false;
             SortHandsDetectMelds();
             DetermineIfKnockingEligible();
         }
@@ -355,6 +343,8 @@ namespace BlazorGinRummy.GinRummyGame
 
         public void SimpleAgentPlaysHand()
         {
+            if (isGameOver) return;
+
             var discardPileCard = discardPile.Last();
 
             handPlayerTwo.Add(discardPileCard);
@@ -512,7 +502,6 @@ namespace BlazorGinRummy.GinRummyGame
 
             if (isPlayerOneTurn)
             {
-                // TODO: Make knock/not knock buttons only available options.
                 isPlayerOneKeepPlaying = false;
                 return;
             }
