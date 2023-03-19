@@ -113,10 +113,10 @@ else
         ginRummyGameService.PlayerOneChoseDiscard_PickedUpCard();
         StateHasChanged();
 
-        // TODO: refactor
-        await Task.Delay(1000); // Delay so that user can better see what decision the computer player made.
-        ginRummyGameService.SimpleAgentPlaysHand();
-        StateHasChanged();
+        if (ginRummyGameService.canPlayerOneKnock) return;
+        if (ginRummyGameService.isPlayerOneMakingFirstCardChoice) return;
+
+        await SimpleAgentTurn();
     }
 
     private async Task CardInHandImgClicked(Card card)
@@ -131,6 +131,11 @@ else
         if (ginRummyGameService.canPlayerOneKnock) return;
         if (ginRummyGameService.isPlayerOneMakingFirstCardChoice) return;
 
+        await SimpleAgentTurn();
+    }
+
+    private async Task SimpleAgentTurn()
+    {
         await Task.Delay(1000); // Delay so that user can better see what decision the computer player made.
         ginRummyGameService.SimpleAgentPlaysHand();
         StateHasChanged();
