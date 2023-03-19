@@ -30,7 +30,7 @@ namespace BlazorGinRummy.GinRummyGame
         private int winnerNumber = 0;
 
         public bool isFirstTurnChanceToPickupFromDiscardPile { get; private set; } = true;
-        public bool isWaitingForPlayerOneInput { get; private set; } = false; // TODO: required?
+        public bool isWaitingForPlayerOneInput { get; private set; } = false; 
         public bool isPickedUpCardSet { get; private set; } = false;
         private bool didNonDealerPickupAtFirstChance = false;
         public bool isPlayerOneMakingFirstCardChoice { get; private set; } = false;
@@ -49,8 +49,8 @@ namespace BlazorGinRummy.GinRummyGame
             SortHandsDetectMelds();
             DetermineIfKnockingEligible();
 
-            isPlayerOneTurn = false; // TODO: uncomment
-            //isPlayerOneTurn = DetermineDealer();
+            //isPlayerOneTurn = false; // TODO: uncomment
+            isPlayerOneTurn = DetermineDealer();
             didPlayerOneStartAsDealer = isPlayerOneTurn;
 
             FirstTurnChanceToPickupFromDiscardPile_Initialize();
@@ -152,7 +152,6 @@ namespace BlazorGinRummy.GinRummyGame
 
             GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " picked up " + pickedUpCard.ToString());
             GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " - Select a card from your hand to discard.");
-            isWaitingForPlayerOneInput = true;
             isPickedUpCardSet = true;
             didPlayerOnePickupCard = true;
         }
@@ -167,23 +166,6 @@ namespace BlazorGinRummy.GinRummyGame
             }
 
             isPlayerOneTurn = !isPlayerOneTurn;
-        }
-
-        private void PlayerOneDiscardedTasks()
-        {
-            GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " discarded " + discardPile.Last().ToString());
-
-            isWaitingForPlayerOneInput = false;
-            pickedUpCard = null;
-            playerOnePickedUpCard = null;
-            isPickedUpCardSet = false;
-
-            didPlayerOnePickupCard = false;
-
-            SortHandsDetectMelds();
-            DetectIfGinHasOccurred();
-            DetermineIfKnockingEligible();
-            PromptPlayerToKnock();
         }
 
         public void PlayerOneChoseDiscard_PickedUpCard()
@@ -211,19 +193,29 @@ namespace BlazorGinRummy.GinRummyGame
 
         private void PlayerOneAfterDiscardTasks()
         {
-            PlayerOneDiscardedTasks(); // TODO: expand? combine all into single method
+            GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " discarded " + discardPile.Last().ToString());
+
+            pickedUpCard = null;
+            playerOnePickedUpCard = null;
+            isPickedUpCardSet = false;
+
+            didPlayerOnePickupCard = false;
+
+            SortHandsDetectMelds();
+            DetectIfGinHasOccurred();
+            DetermineIfKnockingEligible();
+            PromptPlayerToKnock();
 
             PrepareNextTurn();
 
-            // TODO: refactor
             if (isPlayerOneMakingFirstCardChoice)
             {
-                //FirstTurnChanceToPickupFromDiscardPile_Finalize(false);
                 isPlayerOneMakingFirstCardChoice = false;
 
                 if (!didPlayerOneStartAsDealer)
                 {
                     didNonDealerPickupAtFirstChance = true;
+                    isWaitingForPlayerOneInput = false;
                     PrepareNextTurn();
                     FirstTurnChanceToPickupFromDiscardPile_DealerTurn();
                 }
@@ -233,8 +225,6 @@ namespace BlazorGinRummy.GinRummyGame
 
         public void PlayerOneChosePass()
         {
-            // isPlayerOneTurn = !isPlayerOneTurn;
-            isWaitingForPlayerOneInput = false;
             isPlayerOneMakingFirstCardChoice = false;
 
             GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " has chosen to pass.");
@@ -246,6 +236,7 @@ namespace BlazorGinRummy.GinRummyGame
             }
             else
             {
+                isWaitingForPlayerOneInput = false;
                 didNonDealerPickupAtFirstChance = false;
                 FirstTurnChanceToPickupFromDiscardPile_DealerTurn();
             }
@@ -269,9 +260,8 @@ namespace BlazorGinRummy.GinRummyGame
 
             OfferChanceToPickUpFirstCardFromDiscardPile();
 
-            if (isWaitingForPlayerOneInput) return; // TODO: required?
+            if (isWaitingForPlayerOneInput) return;
             FirstTurnChanceToPickupFromDiscardPile_DealerTurn();
-            //OfferChanceToPickUpFirstCardFromDiscardPile();
         }
 
         // TODO: required?
@@ -524,7 +514,6 @@ namespace BlazorGinRummy.GinRummyGame
             {
                 // TODO: Make knock/not knock buttons only available options.
                 isPlayerOneKeepPlaying = false;
-                isWaitingForPlayerOneInput = true;
                 return;
             }
             else
