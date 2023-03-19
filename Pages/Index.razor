@@ -5,7 +5,10 @@
 
 <PageTitle>Index</PageTitle>
 
-<h4>@ginRummyGameService.GameStateMessage</h4>
+@foreach (var msg in ginRummyGameService.GameStateMessage)
+{
+    <p><strong>@msg</strong></p>
+}
 
 @*<ol>
     @foreach (var card in ginRummyGameService.GetDeck())
@@ -18,9 +21,13 @@
     @foreach (var card in ginRummyGameService.handPlayerOne)
     {
         <li>@card.FullNameString()</li>
-        <img width="60" height="60" src="@($"SVG-cards/{card.FullNameString()}.svg")" @onclick="@(() => PlayerOneClickedCardImage(card))">
+        <img width="60" height="60" src="@($"SVG-cards/{card.FullNameString()}.svg")" @onclick="@(async () => await PlayerOneClickedCardImage(card))">
     }
 </ol>
+@if(ginRummyGameService.isPlayerOneTurn && ginRummyGameService.playerOnePickedUpCard != null)
+{
+    <img width="60" height="60" src="@($"SVG-cards/{ginRummyGameService.playerOnePickedUpCard.FullNameString()}.svg")" @onclick="@(async () => await PlayerOneDiscardsCardFromDeck())">
+}
 
 <p>@ginRummyGameService.HandToString(ginRummyGameService.handPlayerTwo)</p>
 <br />
@@ -32,7 +39,12 @@
 
 <br />
 
-<button class="btn btn-danger" @onclick="@(() => PlayerOneClickedPassButton())" disabled="@(!ginRummyGameService.isPlayerOneTurn)">Pass Turn</button>
+<button class="btn btn-primary" @onclick="@(() => PlayerOneClickedDeck())" disabled="@((!ginRummyGameService.isPlayerOneTurn)||(ginRummyGameService.isPlayerOneMakingFirstCardChoice))">Pick Up From Deck</button>
+
+@if(ginRummyGameService.isPlayerOneMakingFirstCardChoice)
+{
+    <button class="btn btn-danger" @onclick="@(() => PlayerOneClickedPassButton())" disabled="@(!ginRummyGameService.isPlayerOneTurn)">Pass Turn</button>
+}
 
 <p>@ginRummyGameService.isPlayerOneTurn</p>
 
@@ -41,9 +53,10 @@
 @code {
     private int playerOneNumber;
 
-        private void PlayerOneClickedDeck()
+    private void PlayerOneClickedDeck()
     {
         if (!ginRummyGameService.isPlayerOneTurn) return;
+        if (ginRummyGameService.isPlayerOneMakingFirstCardChoice) return;
 
         ginRummyGameService.PlayerPickedUpCardFromDeck();
     }
@@ -55,7 +68,21 @@
         ginRummyGameService.PlayerPickedUpCardFromDiscardPile();
     }
 
-    private void PlayerOneClickedCardImage(Card card)
+    private async Task PlayerOneDiscardsCardFromDeck()
+    {
+        if (!ginRummyGameService.isPlayerOneTurn) return;
+        if (!ginRummyGameService.isPickedUpCardSet) return;
+
+        ginRummyGameService.PlayerChoseDiscard_CardFromDeck(); // TODO: refactor with above line, change to use Card object itself instead of int
+        StateHasChanged();
+
+        // TODO: refactor
+        await Task.Delay(1000); // Delay so that user can better see what decision the computer player made.
+        ginRummyGameService.SimpleAgentPlaysHand();
+        StateHasChanged();
+    }
+
+    private async Task PlayerOneClickedCardImage(Card card)
     {
         if (!ginRummyGameService.isPlayerOneTurn) return;
         if (!ginRummyGameService.isPickedUpCardSet) return;
@@ -63,6 +90,13 @@
         playerOneNumber = ginRummyGameService.handPlayerOne.IndexOf(card);
 
         ginRummyGameService.PlayerChoseDiscard(playerOneNumber); // TODO: refactor with above line
+        StateHasChanged();
+
+        if (ginRummyGameService.isPlayerOneMakingFirstCardChoice) return;
+
+        await Task.Delay(1000); // Delay so that user can better see what decision the computer player made.
+        ginRummyGameService.SimpleAgentPlaysHand();
+        StateHasChanged();
     }
 
     private void PlayerOneClickedPassButton()
