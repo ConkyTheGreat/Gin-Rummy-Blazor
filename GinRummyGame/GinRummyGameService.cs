@@ -7,13 +7,13 @@ namespace BlazorGinRummy.GinRummyGame
 {
     public class GinRummyGameService
     {
-        public List<Card> deck { get; private set; } = new List<Card>();
+        public List<Card> deck { get; private set; } = new List<Card>(); // TODO: remove public accessor?
         private const int HAND_SIZE = 10;
         public List<Card> discardPile { get; private set; } = new List<Card>();
         public List<Card> handPlayerOne { get; private set; } = new List<Card>(); // Human player
         public List<Card> handPlayerTwo { get; private set; } = new List<Card>(); // Simple computer player
 
-        private bool canPlayerOneKnock = false;
+        public bool canPlayerOneKnock { get; private set; } = false;
         private bool canPlayerTwoKnock = false;
         private bool isGameOver = false;
 
@@ -53,7 +53,79 @@ namespace BlazorGinRummy.GinRummyGame
             FirstTurnChanceToPickupFromDiscardPile_Initialize();
         }
 
-        public void PlayerPickedUpCardFromDeck()
+        public void PlayerOneChoseKnock()
+        {
+            GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " has chosen to knock and end the game.");
+            isGameOver = true;
+            NonKnockerCombinesUnmatchedCardsWithKnockersMelds();
+            UpdatePlayerScoresAfterKnocking();
+        }
+
+        public void PlayerOneChoseKeepPlaying()
+        {
+            ChangePlayerTurn();
+            SimpleAgentPlaysHand();
+            // TODO: reset bool flags
+        }
+
+        private void NonKnockerCombinesUnmatchedCardsWithKnockersMelds()
+        {
+            if (isPlayerOneTurn) handPlayerTwo = HandMethods.NonKnockerCombinesUnmatchedCardsWithKnockersMelds(handPlayerOne, handPlayerTwo);
+            else handPlayerOne = HandMethods.NonKnockerCombinesUnmatchedCardsWithKnockersMelds(handPlayerTwo, handPlayerOne);
+        }
+
+        private void UpdatePlayerScoresAfterKnocking()
+        {
+            handPlayerOneValue = HandMethods.CalculateHandValue(handPlayerOne);
+            handPlayerTwoValue = HandMethods.CalculateHandValue(handPlayerTwo);
+
+            int points = handPlayerOneValue - handPlayerTwoValue;
+
+            if (isPlayerOneTurn)
+            {
+                if (points == 0)
+                {
+                    playerTwoRoundScore += 10;
+                    winnerNumber = 2;
+                    return;
+                }
+
+                if (points < 0)
+                {
+                    playerOneRoundScore += Math.Abs(points);
+                    winnerNumber = 1;
+                }
+                else
+                {
+                    playerTwoRoundScore += Math.Abs(points);
+                    playerTwoRoundScore += 10;
+                    winnerNumber = 2;
+                }
+            }
+            else
+            {
+                if (points == 0)
+                {
+                    playerOneRoundScore += 10;
+                    winnerNumber = 1;
+                    return;
+                }
+
+                if (points > 0)
+                {
+                    playerTwoRoundScore += Math.Abs(points);
+                    winnerNumber = 2;
+                }
+                else
+                {
+                    playerOneRoundScore += Math.Abs(points);
+                    playerOneRoundScore += 10;
+                    winnerNumber = 1;
+                }
+            }
+        }
+
+        public void PlayerOnePickedUpCardFromDeck()
         {
             pickedUpCard = deck.Last();
             playerOnePickedUpCard = pickedUpCard;
@@ -65,7 +137,7 @@ namespace BlazorGinRummy.GinRummyGame
             // TODO: disable discard button in UI
         }
 
-        public void PlayerPickedUpCardFromDiscardPile()
+        public void PlayerOnePickedUpCardFromDiscardPile()
         {
             pickedUpCard = discardPile.Last();
             GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " picked up " + pickedUpCard.ToString());
@@ -74,6 +146,11 @@ namespace BlazorGinRummy.GinRummyGame
             isPickedUpCardSet = true;
 
             // TODO: disable deck button in UI
+        }
+
+        private void ChangePlayerTurn()
+        {
+            isPlayerOneTurn = !isPlayerOneTurn;
         }
 
         private void PlayerOneDiscardedTasks()
@@ -86,30 +163,33 @@ namespace BlazorGinRummy.GinRummyGame
             DetectIfGinHasOccurred();
             DetermineIfKnockingEligible();
             PromptPlayerToKnock();
-
-            isPlayerOneTurn = !isPlayerOneTurn;
         }
 
-        public void PlayerChoseDiscard_CardFromDeck()
+        public void PlayerOneChoseDiscard_CardFromDeck()
         {
             discardPile.Add(pickedUpCard);
             GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " discarded " + discardPile.Last().ToString());
 
             PlayerOneDiscardedTasks();
+
+            if (canPlayerOneKnock) return;
+            else ChangePlayerTurn();
         }
 
-        public void PlayerChoseDiscard(int userInput)
+        public void PlayerOneChoseDiscard(int userInput)
         {
             discardPile.Add(handPlayerOne[userInput]);
             handPlayerOne[userInput] = pickedUpCard;
 
             GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " discarded " + discardPile.Last().ToString());
 
-            GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " turn"); // TODO: remove
             isWaitingForPlayerOneInput = false;
             isPickedUpCardSet = false;
 
             PlayerOneDiscardedTasks();
+
+            if (canPlayerOneKnock) return;
+            else ChangePlayerTurn();
 
             if (isPlayerOneMakingFirstCardChoice)
             {
@@ -120,13 +200,13 @@ namespace BlazorGinRummy.GinRummyGame
 
                 if (!didPlayerOneStartAsDealer)
                 {
-                    isPlayerOneTurn = !isPlayerOneTurn;
+                    ChangePlayerTurn();
                     FirstTurnChanceToPickupFromDiscardPile_DealerTurn();
                 }
             }
         }
 
-        public void PlayerChoseToPass()
+        public void PlayerOneChosePass()
         {
             // isPlayerOneTurn = !isPlayerOneTurn;
             isWaitingForPlayerOneInput = false;
@@ -225,6 +305,7 @@ namespace BlazorGinRummy.GinRummyGame
                         didNonDealerPickupAtFirstChance = true;
 
                         GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " picked up " + discardPileCard.ToString());
+                        GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " discarded " + highestDeadwoodCard.ToString());
                     }
                 }
                 else
@@ -236,6 +317,7 @@ namespace BlazorGinRummy.GinRummyGame
                     didNonDealerPickupAtFirstChance = true;
 
                     GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " has picked up " + discardPileCard.ToString());
+                    GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " discarded " + highestDeadwoodCard.ToString());
                 }
             }
         }
@@ -392,46 +474,23 @@ namespace BlazorGinRummy.GinRummyGame
             if (isGameOver) return;
             if ((isPlayerOneTurn && !canPlayerOneKnock) || (!isPlayerOneTurn && !canPlayerTwoKnock)) return;
 
-            //WriteLine(CurrentPlayerString(isPlayerOneTurn) + " can knock (hand value less than 10 points) " +
-            //    "- press 'k' if you wish to knock, or 'd' if you wish to continue playing.\n");
+            GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " can knock (hand value less than 10 points) " +
+                "- press 'k' if you wish to knock, or 'd' if you wish to continue playing.");
 
-            //char userKnockInput = ' ';
-
-            //if (isPlayerOneTurn)
-            //{
-            //    while (userKnockInput != 'k' && userKnockInput != 'K' && userKnockInput != 'd' && userKnockInput != 'D')
-            //    {
-            //        userKnockInput = ReadKey().KeyChar;
-            //        WriteLine();
-
-            //        switch (userKnockInput)
-            //        {
-            //            case 'k':
-            //            case 'K':
-            //                WriteLine("\n" + CurrentPlayerString(isPlayerOneTurn) + " has chosen to knock and end the game.\n");
-            //                isGameOver = true;
-            //                NonKnockerCombinesUnmatchedCardsWithKnockersMelds();
-            //                UpdatePlayerScoresAfterKnocking();
-            //                break;
-
-            //            case 'd':
-            //            case 'D':
-            //                WriteLine("\n" + CurrentPlayerString(isPlayerOneTurn) + " has chosen to continue playing.\n");
-            //                break;
-
-            //            default:
-            //                WriteLine("\nInvalid input.\n");
-            //                break;
-            //        }
-            //    }
-            //}
-            //else
-            //{
-            //    WriteLine("\n" + CurrentPlayerString(isPlayerOneTurn) + " has chosen to knock and end the game.\n");
-            //    isGameOver = true;
-            //    NonKnockerCombinesUnmatchedCardsWithKnockersMelds();
-            //    UpdatePlayerScoresAfterKnocking();
-            //}
+            if (isPlayerOneTurn)
+            {
+                // TODO: Make knock/not knock buttons only available options.
+                isWaitingForPlayerOneInput = true;
+                return;
+            }
+            else
+            {
+                // TODO: uncomment
+                //GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " has chosen to knock and end the game.");
+                //isGameOver = true;
+                //NonKnockerCombinesUnmatchedCardsWithKnockersMelds();
+                //UpdatePlayerScoresAfterKnocking();
+            }
         }
     }
 }

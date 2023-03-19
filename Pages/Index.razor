@@ -21,29 +21,34 @@
     @foreach (var card in ginRummyGameService.handPlayerOne)
     {
         <li>@card.FullNameString()</li>
-        <img width="60" height="60" src="@($"SVG-cards/{card.FullNameString()}.svg")" @onclick="@(async () => await PlayerOneClickedCardImage(card))">
+        <img width="60" height="60" src="@($"SVG-cards/{card.FullNameString()}.svg")" @onclick="@(async () => await CardInHandImgClicked(card))">
     }
 </ol>
 @if(ginRummyGameService.isPlayerOneTurn && ginRummyGameService.playerOnePickedUpCard != null)
 {
-    <img width="60" height="60" src="@($"SVG-cards/{ginRummyGameService.playerOnePickedUpCard.FullNameString()}.svg")" @onclick="@(async () => await PlayerOneDiscardsCardFromDeck())">
+    <img width="60" height="60" src="@($"SVG-cards/{ginRummyGameService.playerOnePickedUpCard.FullNameString()}.svg")" @onclick="@(async () => await CardFromDeckImgClicked())">
 }
 
 <p>@ginRummyGameService.HandToString(ginRummyGameService.handPlayerTwo)</p>
 <br />
 <p>Discard Pile: @ginRummyGameService.discardPile.Last().ToString()</p>
-<img width="60" height="60" src="@($"SVG-cards/{ginRummyGameService.discardPile.Last().FullNameString()}.svg")" @onclick="@(() => PlayerOneClickedDiscardPile())">
+<img width="60" height="60" src="@($"SVG-cards/{ginRummyGameService.discardPile.Last().FullNameString()}.svg")" @onclick="@(() => DiscardPileImgClicked())">
 <br />
 <p>@ginRummyGameService.HandToString(ginRummyGameService.handPlayerOne)</p>
 <br />
 
 <br />
 
-<button class="btn btn-primary" @onclick="@(() => PlayerOneClickedDeck())" disabled="@((!ginRummyGameService.isPlayerOneTurn)||(ginRummyGameService.isPlayerOneMakingFirstCardChoice))">Pick Up From Deck</button>
+<button class="btn btn-primary" @onclick="@(() => DeckPickupButtonClicked())" disabled="@((!ginRummyGameService.isPlayerOneTurn)||(ginRummyGameService.isPlayerOneMakingFirstCardChoice))">Pick Up From Deck</button>
 
 @if(ginRummyGameService.isPlayerOneMakingFirstCardChoice)
 {
-    <button class="btn btn-danger" @onclick="@(() => PlayerOneClickedPassButton())" disabled="@(!ginRummyGameService.isPlayerOneTurn)">Pass Turn</button>
+    <button class="btn btn-danger" @onclick="@(() => PassButtonClicked())" disabled="@(!ginRummyGameService.isPlayerOneTurn)">Pass Turn</button>
+}
+@if(ginRummyGameService.canPlayerOneKnock)
+{
+    <button class="btn btn-danger" @onclick="@(() => KnockButtonClicked())" disabled="@(!ginRummyGameService.isPlayerOneTurn)">Knock (END GAME)</button>
+    <button class="btn btn-secondary" @onclick="@(() => KeepPlayingButtonClicked())" disabled="@(!ginRummyGameService.isPlayerOneTurn)">Don't Knock (KEEP PLAYING)</button>
 }
 
 <p>@ginRummyGameService.isPlayerOneTurn</p>
@@ -51,29 +56,42 @@
 <p>@playerOneNumber</p>
 
 @code {
+    // TODO: add private variables in here to control the html tag attributes. Add logic to lock everything if game is over
     private int playerOneNumber;
 
-    private void PlayerOneClickedDeck()
+    private void KnockButtonClicked()
+    {
+        if (!ginRummyGameService.isPlayerOneTurn) return;
+        ginRummyGameService.PlayerOneChoseKnock();
+    }
+
+    private void KeepPlayingButtonClicked()
+    {
+        if (!ginRummyGameService.isPlayerOneTurn) return;
+        ginRummyGameService.PlayerOneChoseKeepPlaying();
+    }
+
+    private void DeckPickupButtonClicked()
     {
         if (!ginRummyGameService.isPlayerOneTurn) return;
         if (ginRummyGameService.isPlayerOneMakingFirstCardChoice) return;
 
-        ginRummyGameService.PlayerPickedUpCardFromDeck();
+        ginRummyGameService.PlayerOnePickedUpCardFromDeck();
     }
 
-    private void PlayerOneClickedDiscardPile()
+    private void DiscardPileImgClicked()
     {
         if (!ginRummyGameService.isPlayerOneTurn) return;
 
-        ginRummyGameService.PlayerPickedUpCardFromDiscardPile();
+        ginRummyGameService.PlayerOnePickedUpCardFromDiscardPile();
     }
 
-    private async Task PlayerOneDiscardsCardFromDeck()
+    private async Task CardFromDeckImgClicked()
     {
         if (!ginRummyGameService.isPlayerOneTurn) return;
         if (!ginRummyGameService.isPickedUpCardSet) return;
 
-        ginRummyGameService.PlayerChoseDiscard_CardFromDeck(); // TODO: refactor with above line, change to use Card object itself instead of int
+        ginRummyGameService.PlayerOneChoseDiscard_CardFromDeck(); // TODO: refactor with above line, change to use Card object itself instead of int
         StateHasChanged();
 
         // TODO: refactor
@@ -82,16 +100,17 @@
         StateHasChanged();
     }
 
-    private async Task PlayerOneClickedCardImage(Card card)
+    private async Task CardInHandImgClicked(Card card)
     {
         if (!ginRummyGameService.isPlayerOneTurn) return;
         if (!ginRummyGameService.isPickedUpCardSet) return;
 
         playerOneNumber = ginRummyGameService.handPlayerOne.IndexOf(card);
 
-        ginRummyGameService.PlayerChoseDiscard(playerOneNumber); // TODO: refactor with above line
+        ginRummyGameService.PlayerOneChoseDiscard(playerOneNumber); // TODO: refactor with above line
         StateHasChanged();
 
+        if (ginRummyGameService.canPlayerOneKnock) return;
         if (ginRummyGameService.isPlayerOneMakingFirstCardChoice) return;
 
         await Task.Delay(1000); // Delay so that user can better see what decision the computer player made.
@@ -99,16 +118,16 @@
         StateHasChanged();
     }
 
-    private void PlayerOneClickedPassButton()
+    private void PassButtonClicked()
     {
         if (!ginRummyGameService.isPlayerOneTurn) return;
 
-        ginRummyGameService.PlayerChoseToPass();
+        ginRummyGameService.PlayerOneChosePass();
     }
 
     //private async Task SubmitPlayerOneTurn()
     //{
-    //    ginRummyGameService.PlayerChoseDiscard(true, playerOneNumber);
+    //    ginRummyGameService.PlayerOneChoseDiscard(true, playerOneNumber);
     //    StateHasChanged();
 
     //    await GetComputerTurn();
@@ -117,7 +136,7 @@
     //private async Task GetComputerTurn()
     //{
     //    await Task.Delay(1000); // Delay so that user can better see what decision the computer player made.
-    //    ginRummyGameService.PlayerChoseDiscard(false, 9);
+    //    ginRummyGameService.PlayerOneChoseDiscard(false, 9);
     //    StateHasChanged();
     //}
 }
