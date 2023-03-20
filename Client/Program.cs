@@ -14,17 +14,9 @@ namespace BlazorGinRummy
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-
-            //builder.Services.AddSingleton<GinRummyGameService>();
             builder.Services.AddSingleton<GinRummyGameService>();
 
-            //var host = builder.Build();
-
             await builder.Build().RunAsync();
-
-            //var ginRummyGameService = host.Services.GetRequiredService<GinRummyGameService>();
-
-            //await host.RunAsync();
         }
     }
 }

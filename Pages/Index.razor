@@ -10,20 +10,14 @@
     <p><strong>@msg</strong></p>
 }
 
-@*<ol>
-    @foreach (var card in ginRummyGameService.GetDeck())
-    {
-        <li>@card.ToString()</li>
-    }
-</ol>*@
-
-<ol>
+<div class="player-hand">
     @foreach (var card in ginRummyGameService.handPlayerOne)
     {
-        <li>@card.FullNameString()</li>
-        <img width="60" height="60" src="@($"SVG-cards/{card.FullNameString()}.svg")" @onclick="@(async () => await CardInHandImgClicked(card))">
+        <img src="@($"SVG-cards/{card.FullNameString()}.svg")" @onclick="@(async () => await CardInHandImgClicked(card))">
     }
-</ol>
+</div>
+
+
 @if(ginRummyGameService.isPlayerOneTurn && ginRummyGameService.playerOnePickedUpCard != null)
 {
     <img width="60" height="60" src="@($"SVG-cards/{ginRummyGameService.playerOnePickedUpCard.FullNameString()}.svg")" @onclick="@(async () => await PickedUpCardImgClicked())">
@@ -59,14 +53,12 @@
 }
 else
 {
+    // TODO: better player scoring UI and game service handling
     <br />
     <strong>ROUND SCORING</strong>
     <p>Player one round score: @ginRummyGameService.playerOneRoundScore</p>
     <p>Player two round score: @ginRummyGameService.playerTwoRoundScore</p>
 }
-
-
-<p>@ginRummyGameService.isPlayerOneTurn</p>
 
 @code {
     private void KnockButtonClicked()
@@ -145,61 +137,6 @@ else
 
         ginRummyGameService.PlayerOneChosePass();
     }
-
-    //private async Task SubmitPlayerOneTurn()
-    //{
-    //    ginRummyGameService.PlayerOneChoseDiscard(true, playerOneNumber);
-    //    StateHasChanged();
-
-    //    await GetComputerTurn();
-    //}
-
-    //private async Task GetComputerTurn()
-    //{
-    //    await Task.Delay(1000); // Delay so that user can better see what decision the computer player made.
-    //    ginRummyGameService.PlayerOneChoseDiscard(false, 9);
-    //    StateHasChanged();
-    //}
 }
-
-
-
-@*<ImagesTest />*@
 
 @*<GinRummyTest />*@
-
-                @*
-@if(@ginRummyGameService.isPlayerOneTurn)
-{
-    <p>Player one turn</p>
-    <input type="number" @bind-value="@playerOneNumber" min="0" max="9">
-    <button @onclick="@SubmitPlayerOneTurn">Submit</button>
-
-}
-else
-{
-    /* 
-    
-    This is extremely hacky but this is the only method I could get to work so that delays could be 
-    programmed in without blocking prior UI updates.
-      
-    */
-
-    <img src="loading.jpg" @onload="@(async () => await GetComputerTurn())" hidden>
-}
-
-
-
-
-    //private void SubmitPlayerOneTurn()
-    //{
-    //    ginRummyGameService.PlayerChooseDiscard(true, playerOneNumber);
-    //    StateHasChanged();
-    //}
-
-    <p>Player one turn</p>
-<input type="number" @bind-value="@playerOneNumber" min="0" max="9">
-<button @onclick="@(async () => await SubmitPlayerOneTurn())" disabled="@(!ginRummyGameService.isPlayerOneTurn)">Submit</button>
-
-*@
-
