@@ -28,13 +28,14 @@ namespace BlazorGinRummy.GinRummyGame
         public int playerOneRoundScore { get; private set; } = 0;
         public int playerTwoRoundScore { get; private set; } = 0;
         private int winnerNumber = 0;
-        public bool isWaitingForPlayerOneInput { get; private set; } = false; 
+        public bool isWaitingForPlayerOneInput { get; private set; } = false;
         private bool didNonDealerPickupAtFirstChance = false;
         public bool isPlayerOneMakingFirstCardChoice { get; private set; } = false;
         private bool didPlayerOneStartAsDealer;
         public bool didPlayerOnePickupCard { get; private set; } = false;
 
         // TODO: rewrite index into a component, create another seperate component for score listing
+        // TODO: have toggle button to see opponents hand or hide it
         public List<string> GameStateMessage { get; private set; } = new();
 
         public GinRummyGameService()
@@ -54,7 +55,8 @@ namespace BlazorGinRummy.GinRummyGame
 
         public void PlayerOneChoseKnock()
         {
-            PlayerOneAfterDiscardTasks(true);
+            //PlayerOneAfterDiscardTasks(true);
+            //PlayerOneAfterDiscardTasks();
             AddGameStateMessage_PlayerKnocked();
             SetGameOver();
             NonKnockerCombinesUnmatchedCardsWithKnockersMelds();
@@ -65,7 +67,9 @@ namespace BlazorGinRummy.GinRummyGame
         {
             GameStateMessage.Add(CurrentPlayerString(isPlayerOneTurn) + " has chosen to continue playing.");
             isPlayerOneKeepPlaying = true;
-            PlayerOneAfterDiscardTasks(true);
+            //PlayerOneAfterDiscardTasks(true);
+            //PlayerOneAfterDiscardTasks();
+            PrepareNextTurn();
             SimpleAgentPlaysHand();
         }
 
@@ -128,6 +132,8 @@ namespace BlazorGinRummy.GinRummyGame
 
         public void PlayerOnePickedUpCardFromDeck()
         {
+            AddGameStateMessage_PlayerChoseToPickupCardFromDeck();
+
             pickedUpCard = deck.Last();
             deck.Remove(deck.Last());
 
@@ -162,11 +168,12 @@ namespace BlazorGinRummy.GinRummyGame
             isPlayerOneTurn = !isPlayerOneTurn;
         }
 
-        public void PlayerOneChoseDiscard_PickedUpCard()
+        public void PlayerOneChoseDiscard_DeckCard()
         {
             discardPile.Add(pickedUpCard);
 
-            PlayerOneAfterDiscardTasks(false);
+            //PlayerOneAfterDiscardTasks(false);
+            PlayerOneAfterDiscardTasks();
         }
 
         public void PlayerOneChoseDiscard(int userInput)
@@ -174,28 +181,30 @@ namespace BlazorGinRummy.GinRummyGame
             discardPile.Add(handPlayerOne[userInput]);
             handPlayerOne[userInput] = pickedUpCard;
 
-            PlayerOneAfterDiscardTasks(false);
+            //PlayerOneAfterDiscardTasks(false);
+            PlayerOneAfterDiscardTasks();
         }
 
-        private void PlayerOneAfterDiscardTasks(bool didPlayerOneAlreadyPass)
+        // TODO: argument?    bool didPlayerOneAlreadyPass    
+        private void PlayerOneAfterDiscardTasks()
         {
-            if(!didPlayerOneAlreadyPass)
-            {
-                SortHandsDetectMelds();
-                DetectIfGinHasOccurred();
-                DetermineIfKnockingEligible();
-                PromptPlayerToKnock();
-
-                pickedUpCard = null;
-                playerOnePickedUpCard = null;
-                didPlayerOnePickupCard = false;
-
-                if (!isPlayerOneKeepPlaying) return;
-            }
-
             AddGameStateMessage_PlayerDiscarded(discardPile.Last().ToString());
 
-            PrepareNextTurn();
+            //if (!didPlayerOneAlreadyPass)
+            //{
+            SortHandsDetectMelds();
+            DetectIfGinHasOccurred();
+            DetermineIfKnockingEligible();
+            PromptPlayerToKnock();
+
+            pickedUpCard = null;
+            playerOnePickedUpCard = null;
+            didPlayerOnePickupCard = false;
+
+            //if (!isPlayerOneKeepPlaying) return;
+            //}
+
+            if (!isGameOver && isPlayerOneKeepPlaying) PrepareNextTurn();
 
             if (isPlayerOneMakingFirstCardChoice)
             {
@@ -240,12 +249,14 @@ namespace BlazorGinRummy.GinRummyGame
                 return;
             }
 
-            GameStateMessage.Add("First turn phase - the non-dealer may choose to pick up the first card from the discard pile, or pass. If the non-dealer passes, the dealer is given the " +
-                "opportunity to pick up the first card from the discard pile, or pass."); 
+            GameStateMessage.Add($"First turn phase - the non-dealer ({CurrentPlayerString(!didPlayerOneStartAsDealer)}) may choose " +
+                $"to pick up the first card from the discard pile, or pass. If the non-dealer passes, " +
+                $"the dealer ({CurrentPlayerString(didPlayerOneStartAsDealer)}) is given the " +
+                "opportunity to pick up the first card from the discard pile, or pass.");
 
             PrepareNextTurn();
             AddGameStateMessage_PromptPlayerPickOrPass();
-            
+
             OfferChanceToPickUpFirstCardFromDiscardPile();
 
             if (isWaitingForPlayerOneInput) return;
@@ -261,7 +272,7 @@ namespace BlazorGinRummy.GinRummyGame
             {
                 GameStateMessage.Add("Non-dealer chose to pass - dealer now has chance to pick up card from discard pile.");
                 AddGameStateMessage_PromptPlayerPickOrPass();
-                
+
                 OfferChanceToPickUpFirstCardFromDiscardPile();
 
                 if (isWaitingForPlayerOneInput) return;
@@ -502,10 +513,10 @@ namespace BlazorGinRummy.GinRummyGame
             else
             {
                 // TODO: uncomment
-                AddGameStateMessage_PlayerKnocked();
-                SetGameOver();
-                NonKnockerCombinesUnmatchedCardsWithKnockersMelds();
-                UpdatePlayerScoresAfterKnocking();
+                //AddGameStateMessage_PlayerKnocked();
+                //SetGameOver();
+                //NonKnockerCombinesUnmatchedCardsWithKnockersMelds();
+                //UpdatePlayerScoresAfterKnocking();
             }
         }
 

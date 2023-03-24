@@ -20,8 +20,10 @@
 
 @if(ginRummyGameService.isPlayerOneTurn && ginRummyGameService.playerOnePickedUpCard != null)
 {
-    <img width="60" height="60" src="@($"SVG-cards/{ginRummyGameService.playerOnePickedUpCard.FullNameString()}.svg")" @onclick="@(async () => await PickedUpCardImgClicked())">
-}
+    <div class="player-hand">
+        <img width="60" height="60" src="@($"SVG-cards/{ginRummyGameService.playerOnePickedUpCard.FullNameString()}.svg")" @onclick="@(async () => await PickedUpCardImgClicked())">
+    </div>
+    }
 
 <p>@ginRummyGameService.HandToString(ginRummyGameService.handPlayerTwo)</p>
 <br />
@@ -29,8 +31,10 @@
 @if (ginRummyGameService.discardPile.Count > 0)
 {
     <p>Discard Pile: @ginRummyGameService.discardPile.Last().ToString()</p>
-    <img width="60" height="60" src="@($"SVG-cards/{ginRummyGameService.discardPile.Last().FullNameString()}.svg")" @onclick="@(() => DiscardPileImgClicked())">
-}
+    <div class="player-hand">
+        <img width="60" height="60" src="@($"SVG-cards/{ginRummyGameService.discardPile.Last().FullNameString()}.svg")" @onclick="@(() => DiscardPileImgClicked())">
+    </div>
+    }
 <br />
 <p>@ginRummyGameService.HandToString(ginRummyGameService.handPlayerOne)</p>
 <br />
@@ -100,7 +104,7 @@ else
         if (!ginRummyGameService.isPlayerOneTurn) return;
         if (ginRummyGameService.isGameOver) return;
 
-        ginRummyGameService.PlayerOneChoseDiscard_PickedUpCard();
+        ginRummyGameService.PlayerOneChoseDiscard_DeckCard();
         StateHasChanged();
 
         if (ginRummyGameService.canPlayerOneKnock) return;
