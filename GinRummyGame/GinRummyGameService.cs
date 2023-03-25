@@ -13,10 +13,10 @@ namespace BlazorGinRummy.GinRummyGame
         public List<Card> HandPlayerOne { get; private set; } // Human player
         public List<Card> HandPlayerTwo { get; private set; }  // Simple computer player
 
-        public bool CanPlayerOneKnock { get; private set; } 
-        public bool IsPlayerOneStillPlaying { get; private set; } 
-        private bool CanPlayerTwoKnock; 
-        public bool IsGameOver { get; private set; } 
+        public bool CanPlayerOneKnock { get; private set; }
+        public bool IsPlayerOneStillPlaying { get; private set; }
+        private bool CanPlayerTwoKnock;
+        public bool IsGameOver { get; private set; }
 
         public bool IsPlayerOneTurn { get; private set; }
 
@@ -25,15 +25,15 @@ namespace BlazorGinRummy.GinRummyGame
 
         private int handPlayerOneValue;
         private int handPlayerTwoValue;
-        public int PlayerOneRoundScore { get; private set; } 
-        public int PlayerTwoRoundScore { get; private set; } 
+        public int PlayerOneRoundScore { get; private set; }
+        public int PlayerTwoRoundScore { get; private set; }
 
         public int PlayerOneGameScore { get; private set; } = 0;
         public int PlayerTwoGameScore { get; private set; } = 0;
 
-        public bool IsWaitingForPlayerOneInput { get; private set; } 
-        private bool didNonDealerPickupAtFirstChance; 
-        public bool IsPlayerOneMakingFirstCardChoice { get; private set; } 
+        public bool IsWaitingForPlayerOneInput { get; private set; }
+        private bool didNonDealerPickupAtFirstChance;
+        public bool IsPlayerOneMakingFirstCardChoice { get; private set; }
         private bool didPlayerOneStartAsDealer;
         public bool DidPlayerOnePickupCard { get; private set; }
 
