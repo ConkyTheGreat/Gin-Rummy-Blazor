@@ -1,0 +1,191 @@
+﻿@using BlazorGinRummy.GinRummyGame.Helpers;
+@using BlazorGinRummy.GinRummyGame.Models;
+@inject GinRummyGameService ginRummyGameService;
+
+<h5>GAME SCORES</h5>
+<p>Player one game score: @ginRummyGameService.PlayerOneGameScore</p>
+<p>Player two game score: @ginRummyGameService.PlayerTwoGameScore</p>
+<br />
+
+@foreach (var msg in ginRummyGameService.GameStateMessage)
+{
+    <p><strong>@msg</strong></p>
+}
+
+<div id="playerTwoHand" class="player-hand">
+    @foreach (var card in ginRummyGameService.HandPlayerTwo)
+    {
+        <img src="@($"SVG-cards/{card.FullNameString()}.svg")">
+    }
+</div>
+
+@if (ginRummyGameService.DiscardPile.Count > 0)
+{
+        <p id="discardPileLabel">DISCARD PILE</p>
+        <img id="discardPileImg" src="@($"SVG-cards/{ginRummyGameService.DiscardPile.Last().FullNameString()}.svg")" @onclick="@(() => DiscardPileImgClicked())">
+    }
+
+
+<div id="playerOneHand" class="player-hand">
+    @foreach (var card in ginRummyGameService.HandPlayerOne)
+    {
+        <img src="@($"SVG-cards/{card.FullNameString()}.svg")" @onclick="@(async () => await CardInHandImgClicked(card))">
+    }
+        @if(ginRummyGameService.IsPlayerOneTurn && ginRummyGameService.PlayerOnePickedUpCard != null)
+    {
+        <img src="@($"SVG-cards/{ginRummyGameService.PlayerOnePickedUpCard.FullNameString()}.svg")" @onclick="@(async () => await PickedUpCardImgClicked())">
+    }
+</div>
+
+
+
+<br />
+
+    <p>@ginRummyGameService.HandToString(ginRummyGameService.HandPlayerTwo)</p>
+<p>@ginRummyGameService.HandToString(ginRummyGameService.HandPlayerOne)</p>
+<br />
+
+<br />
+
+<button class="btn btn-primary" @onclick="@(() => DeckPickupButtonClicked())" disabled="@((!ginRummyGameService.IsPlayerOneTurn)||(ginRummyGameService.IsPlayerOneMakingFirstCardChoice))">Pick Up From Deck</button>
+
+@if(!ginRummyGameService.IsGameOver)
+{
+    @if(ginRummyGameService.IsPlayerOneMakingFirstCardChoice)
+    {
+        <button class="btn btn-danger" @onclick="@(() => PassButtonClicked())" disabled="@(!ginRummyGameService.IsPlayerOneTurn)">Pass Turn</button>
+    }
+    @if(ginRummyGameService.CanPlayerOneKnock && !ginRummyGameService.IsPlayerOneStillPlaying)
+    {
+        <button class="btn btn-danger" @onclick="@(() => KnockButtonClicked())" disabled="@(!ginRummyGameService.IsPlayerOneTurn)">Knock (END GAME)</button>
+        <button class="btn btn-secondary" @onclick="@(() => KeepPlayingButtonClicked())" disabled="@(!ginRummyGameService.IsPlayerOneTurn)">Don't Knock (KEEP PLAYING)</button>
+    }
+}
+else
+{
+    <br />
+    <strong>ROUND SCORING</strong>
+    <p>Player one round score: @ginRummyGameService.PlayerOneRoundScore</p>
+    <p>Player two round score: @ginRummyGameService.PlayerTwoRoundScore</p>
+
+    <br />
+    <button class="btn btn-primary" @onclick="@(() => PlayAgainButtonClicked())">Play Again</button>
+}
+
+@code {
+    private void PlayAgainButtonClicked()
+    {
+        if (!ginRummyGameService.IsGameOver) return;
+
+        ginRummyGameService.StartNewGame();
+    }
+
+    private void KnockButtonClicked()
+    {
+        if (!ginRummyGameService.IsPlayerOneTurn) return;
+        if (ginRummyGameService.IsGameOver) return;
+
+        ginRummyGameService.PlayerOneChoseKnock();
+    }
+
+    private void KeepPlayingButtonClicked()
+    {
+        if (!ginRummyGameService.IsPlayerOneTurn) return;
+        if (ginRummyGameService.IsGameOver) return;
+
+        ginRummyGameService.PlayerOneChoseKeepPlaying();
+    }
+
+    private void DeckPickupButtonClicked()
+    {
+        if (ginRummyGameService.DidPlayerOnePickupCard) return;
+        if (!ginRummyGameService.IsPlayerOneTurn) return;
+        if (ginRummyGameService.IsGameOver) return;
+
+        ginRummyGameService.PlayerOnePickedUpCardFromDeck();
+    }
+
+    private void DiscardPileImgClicked()
+    {
+        if (ginRummyGameService.DidPlayerOnePickupCard) return;
+        if (!ginRummyGameService.IsPlayerOneTurn) return;
+        if (ginRummyGameService.IsGameOver) return;
+
+        ginRummyGameService.PlayerOnePickedUpCardFromDiscardPile();
+    }
+
+    private async Task PickedUpCardImgClicked()
+    {
+        if (!ginRummyGameService.IsPlayerOneTurn) return;
+        if (ginRummyGameService.IsGameOver) return;
+
+        ginRummyGameService.PlayerOneChoseDiscard_DeckCard();
+        StateHasChanged();
+
+        if (ginRummyGameService.CanPlayerOneKnock) return;
+
+        await SimpleAgentTurn();
+    }
+
+    private async Task CardInHandImgClicked(Card card)
+    {
+        if (!ginRummyGameService.IsPlayerOneTurn) return;
+        if (!ginRummyGameService.DidPlayerOnePickupCard) return;
+        if (ginRummyGameService.IsGameOver) return;
+
+        ginRummyGameService.PlayerOneChoseDiscard(ginRummyGameService.HandPlayerOne.IndexOf(card)); 
+        StateHasChanged();
+
+        if (ginRummyGameService.CanPlayerOneKnock) return;
+
+        await SimpleAgentTurn();
+    }
+
+    private async Task SimpleAgentTurn()
+    {
+        await Task.Delay(1000); // Delay so that user can better see what decision the computer player made.
+        ginRummyGameService.SimpleAgentPlaysHand();
+        StateHasChanged();
+    }
+
+    private void PassButtonClicked()
+    {
+        if (ginRummyGameService.DidPlayerOnePickupCard) return;
+        if (!ginRummyGameService.IsPlayerOneTurn) return;
+        if (ginRummyGameService.IsGameOver) return;
+
+        ginRummyGameService.PlayerOneChosePass();
+    }
+}
+
+<style>
+.player-hand {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    height: 20vh;
+}
+
+    .player-hand > img {
+        margin: 1vh;
+    }
+
+#discardPileImg {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0px;
+    margin-bottom: 2vh;
+    height: auto;
+    width: 50%;
+    max-height: 150px;
+}
+
+#discardPileLabel {
+margin-bottom: 0px;
+font-style: italic;
+font-weight: bold;
+text-align: center
+}
+</style>
