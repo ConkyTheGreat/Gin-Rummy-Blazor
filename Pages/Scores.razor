@@ -1,0 +1,11 @@
+﻿@page "/scores"
+@inject GinRummyGameService ginRummyGameService;
+
+<PageTitle>Game Scores</PageTitle>
+
+<div style="text-align: center">
+    <h5>GAME SCORES</h5>
+    <p>Player one game score: @ginRummyGameService.PlayerOneGameScore</p>
+    <p>Player two game score: @ginRummyGameService.PlayerTwoGameScore</p>
+</div>
+

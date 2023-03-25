@@ -37,12 +37,12 @@ namespace BlazorGinRummy.GinRummyGame
         private bool didPlayerOneStartAsDealer;
         public bool DidPlayerOnePickupCard { get; private set; }
 
-        // TODO: have toggle button to see opponents hand or hide it
-        public List<string> GameStateMessage { get; private set; } // initialize new
+        public List<string> GameStateMessage { get; private set; }
 
         public GinRummyGameService()
         {
             // TODO: See how to incorporate game history into browser storage
+            // TODO: see if game logic, methods, opponent hand can be exposed or found via console logging, etc. Security risks?
             StartNewGame();
         }
 
@@ -522,7 +522,6 @@ namespace BlazorGinRummy.GinRummyGame
             }
             else
             {
-                // TODO: uncomment
                 AddGameStateMessage_PlayerKnocked();
                 NonKnockerCombinesUnmatchedCardsWithKnockersMelds();
                 UpdatePlayerScoresAfterKnocking();

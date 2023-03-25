@@ -2,11 +2,6 @@
 @using BlazorGinRummy.GinRummyGame.Models;
 @inject GinRummyGameService ginRummyGameService;
 
-<h5>GAME SCORES</h5>
-<p>Player one game score: @ginRummyGameService.PlayerOneGameScore</p>
-<p>Player two game score: @ginRummyGameService.PlayerTwoGameScore</p>
-<br />
-
 <ul id="gameStateMessageBox">
     @foreach (var msg in ginRummyGameService.GameStateMessage)
     {
@@ -17,7 +12,14 @@
 <div id="playerTwoHand" class="player-hand">
     @foreach (var card in ginRummyGameService.HandPlayerTwo)
     {
-        <img src="@($"SVG-cards/{card.FullNameString()}.svg")">
+        @if (showOpponentHand)
+        {
+            <img src="@($"SVG-cards/{card.FullNameString()}.svg")">
+        }
+        else
+        {
+            <img src="@($"SVG-cards/back_of_card.png")">
+        }
     }
 </div>
 
@@ -25,8 +27,7 @@
 {
         <p id="discardPileLabel">DISCARD PILE</p>
         <img id="discardPileImg" src="@($"SVG-cards/{ginRummyGameService.DiscardPile.Last().FullNameString()}.svg")" @onclick="@(() => DiscardPileImgClicked())">
-    }
-
+}
 
 <div id="playerOneHand" class="player-hand">
     @foreach (var card in ginRummyGameService.HandPlayerOne)
@@ -37,36 +38,49 @@
     {
         <img src="@($"SVG-cards/{ginRummyGameService.PlayerOnePickedUpCard.FullNameString()}.svg")" @onclick="@(async () => await PickedUpCardImgClicked())">
     }
+    <br />
 </div>
 
-<br />
-
-<button class="btn btn-primary" @onclick="@(() => DeckPickupButtonClicked())" disabled="@((!ginRummyGameService.IsPlayerOneTurn)||(ginRummyGameService.IsPlayerOneMakingFirstCardChoice))">Pick Up From Deck</button>
-
+<div class="text-center">
 @if(!ginRummyGameService.IsGameOver)
 {
+    <div class="flex-row">
+         <button class="btn btn-primary" @onclick="@(() => DeckPickupButtonClicked())" disabled="@((!ginRummyGameService.IsPlayerOneTurn)||(ginRummyGameService.IsPlayerOneMakingFirstCardChoice))">Pick Up From Deck</button>
+         <button class="btn btn-secondary" @onclick="@ToggleShowOpponentHand">Show Opponent's Hand</button>
+
     @if(ginRummyGameService.IsPlayerOneMakingFirstCardChoice)
     {
         <button class="btn btn-danger" @onclick="@(() => PassButtonClicked())" disabled="@(!ginRummyGameService.IsPlayerOneTurn)">Pass Turn</button>
     }
+    </div>
+
     @if(ginRummyGameService.CanPlayerOneKnock && !ginRummyGameService.IsPlayerOneStillPlaying)
     {
-        <button class="btn btn-danger" @onclick="@(() => KnockButtonClicked())" disabled="@(!ginRummyGameService.IsPlayerOneTurn)">Knock (END GAME)</button>
-        <button class="btn btn-secondary" @onclick="@(() => KeepPlayingButtonClicked())" disabled="@(!ginRummyGameService.IsPlayerOneTurn)">Don't Knock (KEEP PLAYING)</button>
+        <br />
+        <div class="flex-row">
+            <button class="btn btn-danger" @onclick="@(() => KnockButtonClicked())" disabled="@(!ginRummyGameService.IsPlayerOneTurn)">Knock (END GAME)</button>
+            <button class="btn btn-secondary" @onclick="@(() => KeepPlayingButtonClicked())" disabled="@(!ginRummyGameService.IsPlayerOneTurn)">Don't Knock (KEEP PLAYING)</button>
+        </div>
     }
 }
 else
 {
-    <br />
     <strong>ROUND SCORING</strong>
     <p>Player one round score: @ginRummyGameService.PlayerOneRoundScore</p>
     <p>Player two round score: @ginRummyGameService.PlayerTwoRoundScore</p>
-
-    <br />
     <button class="btn btn-primary" @onclick="@(() => PlayAgainButtonClicked())">Play Again</button>
 }
+</div>
+
 
 @code {
+    private bool showOpponentHand = false;
+
+    private void ToggleShowOpponentHand()
+    {
+        showOpponentHand = !showOpponentHand;
+    }
+
     private void PlayAgainButtonClicked()
     {
         if (!ginRummyGameService.IsGameOver) return;
@@ -184,9 +198,12 @@ text-align: center
 }
 
 #gameStateMessageBox {
+    margin-left: auto;
+    margin-right: auto;
     height: 20vh;
     width: 80vw;
     overflow: hidden; 
     overflow-y: scroll;
+    border-style: double;
 }
 </style>
