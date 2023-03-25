@@ -7,10 +7,12 @@
 <p>Player two game score: @ginRummyGameService.PlayerTwoGameScore</p>
 <br />
 
-@foreach (var msg in ginRummyGameService.GameStateMessage)
-{
-    <p><strong>@msg</strong></p>
-}
+<ul id="gameStateMessageBox">
+    @foreach (var msg in ginRummyGameService.GameStateMessage)
+    {
+        <li>@msg</li>
+    }
+</ul>
 
 <div id="playerTwoHand" class="player-hand">
     @foreach (var card in ginRummyGameService.HandPlayerTwo)
@@ -36,14 +38,6 @@
         <img src="@($"SVG-cards/{ginRummyGameService.PlayerOnePickedUpCard.FullNameString()}.svg")" @onclick="@(async () => await PickedUpCardImgClicked())">
     }
 </div>
-
-
-
-<br />
-
-    <p>@ginRummyGameService.HandToString(ginRummyGameService.HandPlayerTwo)</p>
-<p>@ginRummyGameService.HandToString(ginRummyGameService.HandPlayerOne)</p>
-<br />
 
 <br />
 
@@ -187,5 +181,12 @@ margin-bottom: 0px;
 font-style: italic;
 font-weight: bold;
 text-align: center
+}
+
+#gameStateMessageBox {
+    height: 20vh;
+    width: 80vw;
+    overflow: hidden; 
+    overflow-y: scroll;
 }
 </style>
