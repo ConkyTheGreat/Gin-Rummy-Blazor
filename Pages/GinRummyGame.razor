@@ -50,7 +50,7 @@
 
     @if(ginRummyGameService.IsPlayerOneMakingFirstCardChoice)
     {
-        <button class="btn btn-danger" @onclick="PassButtonClicked" disabled="@(!ginRummyGameService.IsPlayerOneTurn)">Pass Turn</button>
+        <button class="btn btn-danger" @onclick="PassButtonClicked" disabled="@(ginRummyGameService.DidPlayerOnePickupCard)">Pass Turn</button>
     }
     </div>
 
