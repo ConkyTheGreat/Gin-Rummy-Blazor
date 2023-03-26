@@ -1,0 +1,7 @@
+docker build -t gin-rummy-blazor .
+
+docker run -p 8080:80 gin-rummy-blazor
+
+docker commit 3efb7e718fa9 conkythegreat/gin-rummy-blazor
+
+credit: https://chrissainty.com/containerising-blazor-applications-with-docker-containerising-a-blazor-webassembly-app/
