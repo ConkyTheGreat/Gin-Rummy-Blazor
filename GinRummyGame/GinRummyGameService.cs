@@ -18,8 +18,6 @@ namespace BlazorGinRummy.GinRummyGame
 
         public GinRummyGameService()
         {
-            // TODO: See how to incorporate game history into browser storage
-            // TODO: see if game logic, methods, opponent hand can be exposed or found via console logging, etc. Security risks?
             StartNewGame();
         }
 
