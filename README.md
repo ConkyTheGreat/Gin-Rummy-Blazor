@@ -1,4 +1,4 @@
-# BlazorGinRummy
+# Blazor Gin Rummy
 
 This is a web app of a browser-based playable gin rummy game programmed in C# and Blazor WebAssembly. I reworked my [command-line playable version of gin rummy](https://github.com/ConkyTheGreat/Gin-Rummy-CLI) to be played with a browser UI and point/click commands. This version of the game always has the human play against the simple computer AI agent.
 
