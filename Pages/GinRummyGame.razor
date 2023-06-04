@@ -26,7 +26,9 @@
 @if (ginRummyGameService.DiscardPile.Count > 0)
 {
         <p id="discardPileLabel">DISCARD PILE</p>
-        <img id="discardPileImg" src="@($"SVG-cards/{ginRummyGameService.DiscardPile.Last().FullNameString()}.svg")" @onclick="DiscardPileImgClicked">
+        <div class="player-hand">
+            <img src="@($"SVG-cards/{ginRummyGameService.DiscardPile.Last().FullNameString()}.svg")" @onclick="DiscardPileImgClicked">
+        </div>
 }
 
 <div id="playerOneHand" class="player-hand">
@@ -178,17 +180,6 @@ else
     .player-hand > img {
         margin: 1vh;
     }
-
-#discardPileImg {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 0px;
-    margin-bottom: 2vh;
-    height: auto;
-    width: 50%;
-    max-height: 150px;
-}
 
 #discardPileLabel {
 margin-bottom: 0px;
